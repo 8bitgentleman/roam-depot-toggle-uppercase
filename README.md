@@ -1,0 +1,1 @@
+Right-Click menu plugin: Toggles all block text to Uppercase or lowercase
