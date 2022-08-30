@@ -1,42 +1,49 @@
-const panelConfig = {
-  tabTitle: "Test Ext 1",
-  settings: [
-      {id:          "button-setting",
-       name:        "Button test",
-       description: "tests the button",
-       action:      {type:    "button",
-                     onClick: (evt) => { console.log("Button clicked!"); },
-                     content: "Button"}},
-      {id:          "switch-setting",
-       name:        "Switch Test",
-       description: "Test switch component",
-       action:      {type:     "switch",
-                     onChange: (evt) => { console.log("Switch!", evt); }}},
-      {id:     "input-setting",
-       name:   "Input test",
-       action: {type:        "input",
-                placeholder: "placeholder",
-                onChange:    (evt) => { console.log("Input Changed!", evt); }}},
-      {id:     "select-setting",
-       name:   "Select test",
-       action: {type:     "select",
-                items:    ["one", "two", "three"],
-                onChange: (evt) => { console.log("Select Changed!", evt); }}}
-  ]
-};
+  /* Original code by matt vogel */
+  /* v1  */
+  // creates a right click menu plugin to toggle block captialization
 
-async function onload({extensionAPI}) {
-  // set defaults if they dont' exist
-  if (!extensionAPI.settings.get('data')) {
-      await extensionAPI.settings.set('data', "01");
+function isUpper(str) {
+  // check if text is uppercase 
+    return !/[a-z]/.test(str) && /[A-Z]/.test(str);
+}
+
+function cBlock(uid) {
+  // toggle full capitalization of block text
+    let query = `[:find ?s .
+                        :in $ ?uid
+                        :where 
+              [?e :block/uid ?uid]
+              [?e :block/string ?s]
+              ]`;
+    
+    let block_string = window.roamAlphaAPI.q(query,uid);
+    
+    if (isUpper(block_string)) {
+      block_string = block_string.toLowerCase();
+    } else {
+      block_string = block_string.toUpperCase();
+    }
+
+    window.roamAlphaAPI.updateBlock({"block": 
+                  {"uid": uid,
+                    "string": block_string}})
+
   }
-  extensionAPI.settings.panel.create(panelConfig);
 
-  console.log("load example plugin");
+async function onload() {
+  roamAlphaAPI.ui.blockContextMenu.addCommand({
+    label: "Uppercase/Lowercase Toggle",
+    callback: (e) => cBlock(e['block-uid'])
+  })
+
+  console.log("load toggle uppercase plugin");
 }
 
 function onunload() {
-  console.log("unload example plugin");
+  roamAlphaAPI.ui.blockContextMenu.removeCommand({
+    label: "Uppercase/Lowercase Toggle"
+  })
+  console.log("unload toggle uppercase plugin");
 }
 
 export default {
